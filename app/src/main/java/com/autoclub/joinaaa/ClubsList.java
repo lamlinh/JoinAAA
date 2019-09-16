@@ -7,15 +7,15 @@ import java.util.ArrayList;
 public class ClubsList {
     private final static ArrayList<ClubModel> _clubs = new ArrayList<ClubModel>(9) {
         {
-            add(new ClubModel("AAA Alabama", "35068","www.alabama.aaa.com"));
-            add(new ClubModel("Automobile Club of Southern California", "92626", "www.calif.aaa.com"));
-            add(new ClubModel("AAA East Central", "40201","www.eastcentral.aaa.com"));
-            add(new ClubModel("AAA Hawaii", "96817","www.hawaii.aaa.com"));
-            add(new ClubModel("AAA Missouri", "63141","www.autoclubmo.aaa.com"));
-            add(new ClubModel("AAA New Mexico", "87505","www.newmexico.aaa.com"));
-            add(new ClubModel("AAA Northern New England", "04210","www.northernnewengland.aaa.com"));
-            add(new ClubModel("AAA Texas", "79109","www.texas.aaa.com"));
-            add(new ClubModel("AAA Tidewater Virginia", "23462","www.tidewater.aaa.com"));
+            add(new ClubModel("AAA Alabama", "35004","www.alabama.aaa.com", "1-800-521-8124"));
+            add(new ClubModel("Automobile Club of Southern California", "90001", "www.calif.aaa.com","1-866-903-4222"));
+            add(new ClubModel("AAA East Central", "14008","www.eastcentral.aaa.com", "1-800-441-5008"));
+            add(new ClubModel("AAA Hawaii", "96701","www.hawaii.aaa.com", "1-808-593-2221 or 1-800-736-2886"));
+            add(new ClubModel("AAA Missouri", "63141","www.autoclubmo.aaa.com", "1-844-559-0831"));
+            add(new ClubModel("AAA New Mexico", "87001","www.newmexico.aaa.com", "1-877-222-1020"));
+            add(new ClubModel("AAA Northern New England", "03031","www.northernnewengland.aaa.com", "1-866-892-1162 or 1-207-780-6840"));
+            add(new ClubModel("AAA Texas", "73301","www.texas.aaa.com", "1-800-765-0766"));
+            add(new ClubModel("AAA Tidewater Virginia", "22432","www.tidewater.aaa.com", "1-800-501-4222"));
         }
     };
 

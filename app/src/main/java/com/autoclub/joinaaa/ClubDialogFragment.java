@@ -1,7 +1,7 @@
 package com.autoclub.joinaaa;
 
 import android.app.Activity;
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -13,14 +13,16 @@ import android.widget.ArrayAdapter;
 
 import androidx.fragment.app.DialogFragment;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class ClubDialogFragment extends DialogFragment   {
     private static final String ARG_ITEMS = "ARG_ITEMS";
-
+    public static final String CLUB_INDEX = "CLUB_INDEX";
     public interface OnClubTitleSelectedListener {
-        public void onSelectedClubTitleClick(ClubModel club);
+        public void onSelectedClubTitleClick(ClubModel club, int index);
     }
 
     OnClubTitleSelectedListener listener;
@@ -78,23 +80,24 @@ public class ClubDialogFragment extends DialogFragment   {
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        /*Bundle args = getArguments();
+        String[] clubTitles = ClubsList.getClubTitles();
+        Bundle args = getArguments();
+        int checkedItem = -1;
         if (args != null)
         {
-            _clubs = getClubsArrayFromBundle(args.getBundle(ARG_ITEMS));
+            //_clubs = getClubsArrayFromBundle(args.getBundle(ARG_ITEMS));
             //selectedIndex = args.getInt(ARG_SELECTED_INDEX, -1);
+            checkedItem = args.getInt(CLUB_INDEX,0);
+            if (checkedItem >= clubTitles.length || checkedItem < 0) {
+                checkedItem = -1;
+            }
         }
-        else
-        {
-           createClubsList();
-        }
+
         /*if (savedInstanceState != null) {
             selectedIndex = savedInstanceState.getInt(ARG_SELECTED_INDEX, selectedIndex);
         }*/
 
-        String[] clubTitles = ClubsList.getClubTitles();
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(),android.R.style.ThemeOverlay_Material_Dialog_Alert);
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(getActivity());
         // Get the layout inflater
         LayoutInflater inflater = requireActivity().getLayoutInflater();
 
@@ -103,12 +106,12 @@ public class ClubDialogFragment extends DialogFragment   {
         builder.setView(inflater.inflate(R.layout.club_choice_dialog, null))
                 .setTitle(R.string.pick_club_title)
                 .setCancelable(true)
-                .setItems(clubTitles, new DialogInterface.OnClickListener() {
+                .setSingleChoiceItems(clubTitles, checkedItem, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         dismiss();
                         if (listener != null) {
-                            listener.onSelectedClubTitleClick(ClubsList.getAtIndex(i));
+                            listener.onSelectedClubTitleClick(ClubsList.getAtIndex(i), i);
                         }
                     }
                 })

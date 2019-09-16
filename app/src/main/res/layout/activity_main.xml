@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--tools:layout_editor_absoluteX="8dp"-->
+<!--        app:menu="@menu/main_menu"-->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -14,29 +16,44 @@
         android:layout_height="wrap_content"
         android:background="?attr/colorPrimary"
         android:minHeight="?attr/actionBarSize"
-        android:theme="?attr/actionBarTheme"
+        android:theme="@style/ToolbarTheme"
         android:elevation="3dp"
         app:titleTextColor="@color/colorWhite"
-        app:menu="@menu/main_menu"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:layout_editor_absoluteX="8dp" />
+        app:popupTheme="@style/Theme.AppCompat.Light.Dialog.Alert"
+        app:layout_constraintTop_toTopOf="parent">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/clubName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:theme="@style/toobarClubTitleText"/>
+            <TextView
+                android:id="@+id/joinContact"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/colorWhite"/>
+        </LinearLayout>
+    </androidx.appcompat.widget.Toolbar>
 
     <ProgressBar
         android:id="@+id/progressBar"
         style="@android:style/Widget.ProgressBar.Horizontal"
         android:layout_width="match_parent"
-        android:layout_height="8dp"
-        app:layout_constraintTop_toBottomOf="@id/toolbar"
-        tools:layout_editor_absoluteX="163dp" />
+        android:layout_height="6dp"
+        android:backgroundTintMode="screen"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"/>
 
     <WebView
         android:id="@+id/webBrowser"
         android:layout_width="match_parent"
         android:layout_height= "match_parent"
+        android:layout_marginTop="?attr/actionBarSize"
         android:layout_marginBottom="?attr/actionBarSize"
         app:layout_constraintBottom_toTopOf="@+id/footer"
-        app:layout_constraintTop_toBottomOf="@+id/progressBar"
-        tools:layout_editor_absoluteX="8dp" />
+        app:layout_constraintTop_toBottomOf="@+id/progressBar"/>
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:id="@+id/footer"
@@ -67,6 +84,7 @@
             app:layout_anchor="@+id/bottomAppBar"
             app:srcCompat="@drawable/ic_refresh_white"
             app:tint="@color/colorWhite"/>
+
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

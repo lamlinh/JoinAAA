@@ -23,6 +23,7 @@ import android.location.Location;
 
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.service.carrier.CarrierMessagingService;
 import android.util.Base64;
@@ -41,6 +42,7 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebSettings;
 import android.webkit.WebViewClient;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -92,22 +94,21 @@ public class MainActivity extends AppCompatActivity
     private static String[] PERMISSIONS_LOCATION = {Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION};
     private static final String TAG  = "WebView";
     protected static final int REQUEST_CHECK_SETTINGS = 9001;
-    protected static  final String SETTING_CLUB_HOST = "ClubHost";
-    protected static  final  String SETTING_CLUB_POSTAL_CODE = "ClubPostalCode";
-    protected static final  String SETTING_CLUB_TITLE = "ClubTitle";
 
     FusedLocationProviderClient _fusedLocationClient = null;
     LocationCallback _locationCallback;
     LocationRequest _locationRequest;
     String _locationPostalCode = "";
     String _clubHost = "";
-    String _newMemPageUrl = "";
+    String _clubTitle = "";
+    String _joinContact = "";
+    int _selectedClubIndex = -1;
     String _joinAAALink = "";
 
     boolean _isLoadingNewMemberPage;
     boolean _isRedirectToMemberPage;
 
-    ArrayList<ClubModel> _clubs;
+    private static final String SELECTED_CLUB_INDEX_KEY = "selectedClubIndex";
 
     @SuppressLint("WrongConstant")
     @Override
@@ -142,21 +143,18 @@ public class MainActivity extends AppCompatActivity
         androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         configureWebView();
-        SharedPreferences mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        String title = mPreferences.getString(SETTING_CLUB_TITLE,"");
-        _clubHost = mPreferences.getString(SETTING_CLUB_HOST, "");
-        _locationPostalCode = mPreferences.getString(SETTING_CLUB_POSTAL_CODE, "");
+        readPreferences();
         if (savedInstanceState != null)
         {
             _webView.restoreState(savedInstanceState);
             return;
         }
-        if (title == "" || _clubHost == "" || _locationPostalCode == "") {
+        if (_clubHost == "" || _locationPostalCode == "") {
             showLookupZipGate();
         }
         else
         {
-            setTitle(title);
+            setToolBarTitle(_clubTitle, _joinContact);
             loadJoinAAA();
         }
 
@@ -180,12 +178,28 @@ public class MainActivity extends AppCompatActivity
         }
         */
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_menu, menu);
         return true;
     }
+
+   @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        final MenuItem menuItem = menu.findItem((R.id.change_club));
+        FrameLayout rootView = (FrameLayout) menuItem.getActionView();
+        rootView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onOptionsItemSelected(menuItem);
+            }
+        });
+        return super.onPrepareOptionsMenu(menu);
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -226,21 +240,22 @@ public class MainActivity extends AppCompatActivity
         //_webView.clearHistory();
 
         if (_clubHost == null || _clubHost == "" || _locationPostalCode == null || _locationPostalCode == "" ) {
-            SharedPreferences mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-            _clubHost = mPreferences.getString(SETTING_CLUB_HOST, "");
-            _locationPostalCode = mPreferences.getString(SETTING_CLUB_POSTAL_CODE, "");
+            readPreferences();
             if (_clubHost == "" || _locationPostalCode == "") {
                 showLookupZipGate();
                 return;
+            }
+            else {
+                setToolBarTitle(_clubTitle, _joinContact);
             }
         }
         _isLoadingNewMemberPage = true;
         _isRedirectToMemberPage = false;
         String newMemberHost = _clubHost.replace("www","apps");
-        _newMemPageUrl = "https://" + newMemberHost + "/ACEApps/membership/#/createMembership/?flowName=NewBiz";
+        //_newMemPageUrl = "https://" + newMemberHost + "/ACEApps/membership/#/createMembership/?flowName=NewBiz";
         _joinAAALink = "https://" + newMemberHost + "/aceapps/membership/Join/SelectMembershipLevel?flowName=NewBiz";
         _webView.setVisibility(View.INVISIBLE);
-        _webView.loadUrl("https://" + _clubHost + "/?zip=" + _locationPostalCode);
+        _webView.loadUrl("https://" + _clubHost + "/?zip=" + _locationPostalCode+"-AAA");
     }
 
     private void showErrorPage(String message) {
@@ -248,6 +263,7 @@ public class MainActivity extends AppCompatActivity
         String encodedHtml = Base64.encodeToString(html.getBytes(), Base64.NO_PADDING);
         _webView.loadData(encodedHtml, "text/html", "base64");
     }
+
     private void showLookupZipGate()
     {
         /*setIndicatorVisibility(false);
@@ -255,21 +271,25 @@ public class MainActivity extends AppCompatActivity
         String encodedHtml = Base64.encodeToString(html.getBytes(), Base64.NO_PADDING);
         myWebView.loadData(encodedHtml, "text/html", "base64");*/
         FragmentManager fragmentManager = getSupportFragmentManager();
+
         ClubDialogFragment clubDialog = new ClubDialogFragment();
+        if (_clubHost != "" || _selectedClubIndex >= 0) {
+            Bundle arguments = new Bundle();
+            arguments.putInt(ClubDialogFragment.CLUB_INDEX, _selectedClubIndex);
+            clubDialog.setArguments(arguments);
+        }
+
         FragmentTransaction ft = fragmentManager.beginTransaction();
         clubDialog.show(ft, "clubDialog");
     }
 
-    private ClubModel getClub(String host) {
-        if (_clubs == null) {
-            _clubs = ClubsList.get();
-        }
-        for(ClubModel club: _clubs) {
-            if (club.Host.equalsIgnoreCase(host))
-                return club;
-        }
-
-        return null;
+    private void readPreferences() {
+        SharedPreferences mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        _clubHost = mPreferences.getString(ClubModel.KEY_CLUB_HOST, "");
+        _locationPostalCode = mPreferences.getString(ClubModel.KEY_CLUB_POSTAL, "");
+        _clubTitle = mPreferences.getString(ClubModel.KEY_CLUB_TITLE,"");
+        _joinContact = mPreferences.getString(ClubModel.KEY_NEW_MEM_CONTACT,"");
+        _selectedClubIndex = mPreferences.getInt(SELECTED_CLUB_INDEX_KEY,-1);
     }
 
     private void configureWebView() {
@@ -318,6 +338,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private class CustomWebChromeClient extends WebChromeClient {
+
         @Override
         public void onProgressChanged(WebView view, int progress) {
             _progressBar.setProgress(progress);
@@ -526,19 +547,60 @@ public class MainActivity extends AppCompatActivity
      * @param selectedClub
      */
     @Override
-    public void onSelectedClubTitleClick(ClubModel selectedClub) {
-        _clubHost = selectedClub.Host;
-        _locationPostalCode = selectedClub.PostalCode;
-        SharedPreferences mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        SharedPreferences.Editor editor = mPreferences.edit();
-        editor.putString(SETTING_CLUB_HOST, _clubHost);
-        editor.putString(SETTING_CLUB_POSTAL_CODE, _locationPostalCode);
-        editor.putString(SETTING_CLUB_TITLE, selectedClub.Title);
-        editor.apply();
-        setTitle(selectedClub.Title);
-        loadJoinAAA();
+    public void onSelectedClubTitleClick(ClubModel selectedClub, int index) {
+
+        boolean setDelay = false;
+        if (_progressBar.getVisibility() == View.VISIBLE) {
+            resetWebView();
+            setDelay = true;
+        }
+        if (_clubHost != selectedClub.Host || _locationPostalCode != selectedClub.PostalCode) {
+            _clubHost = selectedClub.Host;
+            _locationPostalCode = selectedClub.PostalCode;
+            _selectedClubIndex = index;
+            _clubTitle = selectedClub.Title;
+            _joinContact = selectedClub.NewMembershipContact;
+
+            SharedPreferences mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+            SharedPreferences.Editor editor = mPreferences.edit();
+
+            editor.putString(ClubModel.KEY_CLUB_HOST, _clubHost);
+            editor.putString(ClubModel.KEY_CLUB_POSTAL, _locationPostalCode);
+            editor.putString(ClubModel.KEY_CLUB_TITLE, _clubTitle);
+            editor.putString(ClubModel.KEY_NEW_MEM_CONTACT, _joinContact);
+            editor.putInt(SELECTED_CLUB_INDEX_KEY, index);
+            editor.apply();
+            setToolBarTitle(_clubTitle, _joinContact);
+            _webView.clearFormData();
+            _webView.clearHistory();
+            _webView.clearCache(true);
+        }
+        if (setDelay){
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    loadJoinAAA();
+                }
+            }, 1500);
+        }
+        else {
+            loadJoinAAA();
+        }
     }
 
+    private void resetWebView() {
+        _isLoadingNewMemberPage = false;
+        _isRedirectToMemberPage = false;
+        _webView.stopLoading();
+        _webView.loadUrl("about:blank");
+    }
+
+    private void setToolBarTitle(String clubName, String contact) {
+        TextView clubTitle = findViewById(R.id.clubName);
+        TextView joinContact = findViewById(R.id.joinContact);
+        clubTitle.setText(clubName);
+        joinContact.setText("To join: " + contact);
+    }
     @Override
     protected void onSaveInstanceState(Bundle outState ) {
         super.onSaveInstanceState(outState);

@@ -1,0 +1,21 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="@dimen/menu_item_size"
+    android:layout_height="?attr/actionBarSize"
+    android:layout_gravity="center">
+
+    <ImageView
+        android:layout_width="@dimen/menu_item_icon_size"
+        android:layout_height="@dimen/menu_item_icon_size"
+        android:layout_gravity="center|center_horizontal"
+        android:layout_marginTop="-6dp"
+        android:src="@drawable/aaa_orbit_logo" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="4dp"
+        android:textSize="16sp"
+        android:text="Select"/>
+</FrameLayout>
